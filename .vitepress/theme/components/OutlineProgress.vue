@@ -8,12 +8,11 @@ type Point = { x: number; y: number }
 // bottom-of-page shortcut, which skips child headings when anchors cannot align.
 const route = useRoute()
 const container = shallowRef<HTMLElement | null>(null)
-const title = shallowRef<HTMLElement | null>(null)
 const points = ref<Point[]>([])
 const height = ref(0)
 const startY = ref(0)
 const current = ref(0)
-const progress = ref(0)
+const atArticleEnd = ref(false)
 const activePoint = computed(() => points.value[current.value] ?? points.value[0])
 let article: HTMLElement | null = null
 let links: HTMLAnchorElement[] = []
@@ -87,13 +86,7 @@ function update() {
     if (index === active) link.setAttribute('aria-current', 'location')
     else link.removeAttribute('aria-current')
   })
-  const rect = article.getBoundingClientRect()
-  const start = Math.max(0, rect.top + window.scrollY - getScrollOffset())
-  const end = rect.bottom + window.scrollY - window.innerHeight
-  const distance = end - start
-  progress.value = distance <= 0
-    ? 100
-    : Math.min(100, Math.max(0, Math.round((window.scrollY - start) / distance * 100)))
+  atArticleEnd.value = article.getBoundingClientRect().bottom <= window.innerHeight + 1
 }
 
 function schedule(measureLayout = false) {
@@ -168,10 +161,9 @@ async function bindOutline() {
   outline = document.querySelector<HTMLElement>('.VPDocAsideOutline.has-outline')
   article = document.querySelector<HTMLElement>('.VPDoc .vp-doc')
   container.value = outline?.querySelector<HTMLElement>('.content') ?? null
-  title.value = outline?.querySelector<HTMLElement>('.outline-title') ?? null
   outline?.classList.add('has-progress-line')
   points.value = []
-  progress.value = 0
+  atArticleEnd.value = false
   links = []
   headings = []
   if (boundPath !== route.path) {
@@ -232,7 +224,7 @@ onBeforeUnmount(() => {
     <svg v-if="path && activePoint" class="wiki-outline-trace" width="100%" :height="height" aria-hidden="true">
       <defs>
         <clipPath id="wiki-outline-progress-clip">
-          <rect width="100%" :height="progress === 100 && current === points.length - 1 ? height : activePoint.y" />
+          <rect width="100%" :height="atArticleEnd && current === points.length - 1 ? height : activePoint.y" />
         </clipPath>
       </defs>
       <path :d="path" class="wiki-outline-track" />
@@ -240,8 +232,5 @@ onBeforeUnmount(() => {
       <circle :cx="activePoint.x" :cy="activePoint.y" r="8" class="wiki-outline-glow" />
       <circle :cx="activePoint.x" :cy="activePoint.y" r="3.5" class="wiki-outline-current" />
     </svg>
-  </Teleport>
-  <Teleport v-if="title" :to="title">
-    <span class="wiki-outline-percentage" :aria-label="`阅读进度 ${progress}%`">{{ progress }}%</span>
   </Teleport>
 </template>

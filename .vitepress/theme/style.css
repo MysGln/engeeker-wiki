@@ -112,12 +112,6 @@
   fill: var(--vp-c-brand-1);
 }
 
-.wiki-outline-percentage {
-  color: var(--vp-c-brand-1);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .VPDocAsideOutline.has-progress-line .outline-link {
     transition: none;
