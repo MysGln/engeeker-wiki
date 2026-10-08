@@ -1,0 +1,14 @@
+/* 仅设置品牌绿色；布局使用 VitePress 默认主题。 */
+:root {
+  --vp-c-brand-1: #25824f;
+  --vp-c-brand-2: #2b965b;
+  --vp-c-brand-3: #25824f;
+  --vp-c-brand-soft: rgba(37, 130, 79, 0.14);
+}
+
+.dark {
+  --vp-c-brand-1: #66c68c;
+  --vp-c-brand-2: #4eaf77;
+  --vp-c-brand-3: #25824f;
+  --vp-c-brand-soft: rgba(102, 198, 140, 0.16);
+}
