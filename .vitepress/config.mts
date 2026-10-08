@@ -6,6 +6,7 @@ export default defineConfig({
   title: "硬壳编程 Wiki",
   description: "核心知识库",
   themeConfig: {
+    outlineTitle: '本页目录',
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },

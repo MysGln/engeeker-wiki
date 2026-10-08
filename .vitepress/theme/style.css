@@ -1,4 +1,4 @@
-/* 仅设置品牌绿色；布局使用 VitePress 默认主题。 */
+/* 品牌绿色与目录进度线；页面布局使用 VitePress 默认主题。 */
 :root {
   --vp-c-brand-1: #25824f;
   --vp-c-brand-2: #2b965b;
@@ -11,4 +11,106 @@
   --vp-c-brand-2: #4eaf77;
   --vp-c-brand-3: #25824f;
   --vp-c-brand-soft: rgba(102, 198, 140, 0.16);
+}
+
+/* 阅读目录：连续细线、层级弯折与当前章节圆点。 */
+.VPDocAsideOutline.has-progress-line {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  padding: 14px 12px 12px;
+  background: var(--vp-c-bg);
+}
+
+.VPDocAsideOutline.has-progress-line .content {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.VPDocAsideOutline.has-progress-line .outline-marker {
+  display: none;
+}
+
+.VPDocAsideOutline.has-progress-line .outline-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.VPDocAsideOutline.has-progress-line .VPDocOutlineItem.nested {
+  padding-right: 0;
+  padding-left: 16px;
+}
+
+.VPDocAsideOutline.has-progress-line .outline-link {
+  border-radius: 6px;
+  padding: 6px 6px 6px 24px;
+  font-size: 13px;
+  line-height: 20px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.VPDocAsideOutline.has-progress-line .outline-link:hover,
+.VPDocAsideOutline.has-progress-line .outline-link:focus-visible {
+  background: var(--vp-c-bg-soft);
+}
+
+.VPDocAsideOutline.has-progress-line .outline-link:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: -2px;
+}
+
+.VPDocAsideOutline.has-progress-line .outline-link.active {
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+}
+
+.wiki-outline-trace {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.wiki-outline-track,
+.wiki-outline-read {
+  fill: none;
+  stroke-width: 1.2;
+}
+
+.wiki-outline-track {
+  stroke: var(--vp-c-divider);
+}
+
+.wiki-outline-read {
+  stroke: var(--vp-c-brand-1);
+}
+
+.wiki-outline-glow {
+  fill: var(--vp-c-brand-soft);
+}
+
+.wiki-outline-current {
+  fill: var(--vp-c-brand-1);
+}
+
+.wiki-outline-percentage {
+  color: var(--vp-c-brand-1);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .VPDocAsideOutline.has-progress-line .outline-link {
+    transition: none;
+  }
 }
