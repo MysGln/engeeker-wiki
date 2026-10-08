@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { getScrollOffset, onContentUpdated } from 'vitepress'
+import { getScrollOffset, onContentUpdated, useRoute } from 'vitepress'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 
 type Point = { x: number; y: number }
 
-// Enhance the default outline so VitePress keeps control of links and active anchors.
+// Keep VitePress links, but determine the reading position independently of its
+// bottom-of-page shortcut, which skips child headings when anchors cannot align.
+const route = useRoute()
 const container = shallowRef<HTMLElement | null>(null)
 const title = shallowRef<HTMLElement | null>(null)
 const points = ref<Point[]>([])
@@ -15,6 +17,11 @@ const progress = ref(0)
 const activePoint = computed(() => points.value[current.value] ?? points.value[0])
 let article: HTMLElement | null = null
 let links: HTMLAnchorElement[] = []
+let headings: Array<HTMLElement | null> = []
+let selectedId: string | null = null
+let boundPath: string | null = null
+let scrollIntent = false
+let lastScrollY = 0
 let outline: HTMLElement | null = null
 let resizeObserver: ResizeObserver | undefined
 let mutationObserver: MutationObserver | undefined
@@ -47,6 +54,14 @@ function measure() {
   const content = container.value
   if (!content || !content.getClientRects().length) return
   links = Array.from(content.querySelectorAll<HTMLAnchorElement>('.outline-link'))
+  headings = links.map(link => {
+    try {
+      const heading = document.getElementById(decodeURIComponent(link.hash.slice(1)))
+      return heading && article?.contains(heading) ? heading : null
+    } catch {
+      return null
+    }
+  })
   const rect = content.getBoundingClientRect()
   points.value = links.map(link => {
     const linkRect = link.getBoundingClientRect()
@@ -58,8 +73,20 @@ function measure() {
 
 function update() {
   if (!article || !links.length) return
-  const active = links.findIndex(link => link.classList.contains('active'))
-  current.value = active < 0 ? 0 : active
+  let active = selectedId ? headings.findIndex(heading => heading?.id === selectedId) : -1
+  if (active < 0) {
+    const readingLine = getScrollOffset() + 4
+    active = 0
+    headings.forEach((heading, index) => {
+      if (heading && heading.getBoundingClientRect().top <= readingLine) active = index
+    })
+  }
+  current.value = active
+  links.forEach((link, index) => {
+    link.classList.toggle('wiki-outline-active', index === active)
+    if (index === active) link.setAttribute('aria-current', 'location')
+    else link.removeAttribute('aria-current')
+  })
   const rect = article.getBoundingClientRect()
   const start = Math.max(0, rect.top + window.scrollY - getScrollOffset())
   const end = rect.bottom + window.scrollY - window.innerHeight
@@ -80,8 +107,55 @@ function schedule(measureLayout = false) {
   })
 }
 
-const onScroll = () => schedule()
+const onScroll = () => {
+  if (scrollIntent && Math.abs(window.scrollY - lastScrollY) > 0.5) {
+    selectedId = null
+    scrollIntent = false
+  }
+  lastScrollY = window.scrollY
+  schedule()
+}
 const onResize = () => schedule(true)
+const onScrollIntent = () => { scrollIntent = true }
+const onKeydown = (event: KeyboardEvent) => {
+  if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) return
+  const target = event.target
+  if (target instanceof Element && target.closest('input, textarea, select, [contenteditable]')) return
+  onScrollIntent()
+}
+const onPointerdown = (event: PointerEvent) => {
+  if (event.clientX >= document.documentElement.clientWidth) onScrollIntent()
+}
+
+// At the page bottom several different anchors may share one scroll position.
+// Keep the clicked heading selected until the reader actually scrolls again.
+function onAnchorClick(event: MouseEvent) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  const target = event.target
+  const link = target instanceof Element ? target.closest<HTMLAnchorElement>('a[href]') : null
+  if (!link?.hash || link.origin !== location.origin || link.pathname !== location.pathname) return
+  selectHash(link.hash)
+}
+
+function decodeHash(hash: string) {
+  try { return decodeURIComponent(hash.slice(1)) || null } catch { return null }
+}
+
+function selectHash(hash = location.hash) {
+  const id = decodeHash(hash)
+  selectedId = headings.some(heading => heading?.id === id) ? id : null
+  scrollIntent = false
+  schedule()
+}
+
+const onHistoryNavigation = () => selectHash()
+
+function clearHighlight() {
+  links.forEach(link => {
+    link.classList.remove('wiki-outline-active')
+    link.removeAttribute('aria-current')
+  })
+}
 
 async function bindOutline() {
   const version = ++bindingVersion
@@ -89,6 +163,7 @@ async function bindOutline() {
   if (!mounted || version !== bindingVersion) return
   resizeObserver?.disconnect()
   mutationObserver?.disconnect()
+  clearHighlight()
   outline?.classList.remove('has-progress-line')
   outline = document.querySelector<HTMLElement>('.VPDocAsideOutline.has-outline')
   article = document.querySelector<HTMLElement>('.VPDoc .vp-doc')
@@ -98,6 +173,13 @@ async function bindOutline() {
   points.value = []
   progress.value = 0
   links = []
+  headings = []
+  if (boundPath !== route.path) {
+    selectedId = decodeHash(location.hash)
+    boundPath = route.path
+  }
+  scrollIntent = false
+  lastScrollY = window.scrollY
   if (article) resizeObserver?.observe(article)
   if (container.value) {
     resizeObserver?.observe(container.value)
@@ -115,6 +197,13 @@ onMounted(() => {
   mutationObserver = new MutationObserver(records => schedule(records.some(record => record.type === 'childList')))
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', onResize, { passive: true })
+  window.addEventListener('wheel', onScrollIntent, { passive: true })
+  window.addEventListener('touchstart', onScrollIntent, { passive: true })
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener('pointerdown', onPointerdown, { passive: true })
+  window.addEventListener('popstate', onHistoryNavigation)
+  window.addEventListener('hashchange', onHistoryNavigation)
+  document.addEventListener('click', onAnchorClick)
   bindOutline()
   document.fonts.ready.then(() => { if (mounted) schedule(true) })
 })
@@ -124,9 +213,17 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(frame)
   resizeObserver?.disconnect()
   mutationObserver?.disconnect()
+  clearHighlight()
   outline?.classList.remove('has-progress-line')
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('resize', onResize)
+  window.removeEventListener('wheel', onScrollIntent)
+  window.removeEventListener('touchstart', onScrollIntent)
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('pointerdown', onPointerdown)
+  window.removeEventListener('popstate', onHistoryNavigation)
+  window.removeEventListener('hashchange', onHistoryNavigation)
+  document.removeEventListener('click', onAnchorClick)
 })
 </script>
 
@@ -135,7 +232,7 @@ onBeforeUnmount(() => {
     <svg v-if="path && activePoint" class="wiki-outline-trace" width="100%" :height="height" aria-hidden="true">
       <defs>
         <clipPath id="wiki-outline-progress-clip">
-          <rect width="100%" :height="progress === 100 ? height : activePoint.y" />
+          <rect width="100%" :height="progress === 100 && current === points.length - 1 ? height : activePoint.y" />
         </clipPath>
       </defs>
       <path :d="path" class="wiki-outline-track" />

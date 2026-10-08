@@ -68,7 +68,16 @@
 }
 
 .VPDocAsideOutline.has-progress-line .outline-link.active {
+  color: var(--vp-c-text-2);
+  font-weight: 400;
+}
+
+.VPDocAsideOutline.has-progress-line .outline-link.wiki-outline-active,
+.VPDocAsideOutline.has-progress-line .outline-link:hover {
   color: var(--vp-c-text-1);
+}
+
+.VPDocAsideOutline.has-progress-line .outline-link.wiki-outline-active {
   font-weight: 600;
 }
 
