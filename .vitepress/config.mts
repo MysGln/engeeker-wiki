@@ -9,20 +9,7 @@ export default defineConfig({
   themeConfig: {
     outlineTitle: '本页目录',
     // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
-    ],
-
-    sidebar: [
-      {
-        text: 'Examples',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
-        ]
-      }
-    ],
+    nav: [{ text: '首页', link: '/' }],
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/MysGln/engeeker-wiki' }
