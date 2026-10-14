@@ -43,6 +43,12 @@ npm run preview
 - `.vitepress/config.mts`：标题、导航、侧边栏。
 - `.vitepress/theme/style.css`：品牌颜色，保留默认布局。
 
+## 字体与文档排版
+
+字体参考 https://jyywiki.cn/GSE/2026/lab1.md （2026-10-15 核对）：正文 Kalam、标题及导航 Merienda One、代码 Fira Mono。文档正文 16px，一级/二级/三级标题分别为 24/20/18px，正文段落行距 1.625，代码行距 1.5。
+
+设置集中在 `.vitepress/theme/typography.css`。字体文件随站点保存在 `public/fonts/`，不依赖外部字体请求；来源与许可证在同目录。中文沿用参考页面的系统/浏览器回退，跨操作系统的字形可能不同。当前只同步字体和排版参数，保持原有页面结构、配色及目录进度线。
+
 ## Git 维护
 
 此目录是独立 Git 仓库。先进入 WIKI 再操作 Git：

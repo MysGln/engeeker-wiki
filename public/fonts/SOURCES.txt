@@ -1,0 +1,27 @@
+Typography reference (checked 2026-10-15)
+https://jyywiki.cn/GSE/2026/lab1.md
+https://jyywiki.cn/_next/static/css/f1360f1f2c658522.css
+
+Original font CSS imported by the reference page:
+https://fonts.font.im/css?family=Kalam|Merienda+One|Fira+Mono
+
+Unmodified font files downloaded from that CSS:
+Kalam-Regular.ttf
+https://fonts.gstatic.font.im/s/kalam/v18/YA9dr0Wd4kDdMthROCI.ttf
+MeriendaOne-Regular.ttf
+https://fonts.gstatic.font.im/s/meriendaone/v18/H4cgBXaMndbflEq6kyZ1ht6ohYa2.ttf
+FiraMono-Regular.ttf
+https://fonts.gstatic.font.im/s/firamono/v16/N0bX2SlFPv1weGeLZDtgJv7X.ttf
+
+All three families are distributed under SIL Open Font License 1.1.
+License copies: Kalam-OFL.txt, Merienda-OFL.txt, FiraMono-OFL.txt.
+Merienda One is the original release of the Merienda family:
+https://github.com/google/fonts/blob/main/ofl/merienda/FONTLOG.txt
+
+The Latin fonts do not provide Chinese glyphs. The reading fallback family
+order is kept identical to the reference page, so Chinese glyphs are rendered
+by the system/browser fallback and may differ between operating systems.
+
+The reference imports only weight 400. Its bold headings and light inline
+code declarations are retained; the browser synthesizes/chooses the available
+weight just as on the reference site.

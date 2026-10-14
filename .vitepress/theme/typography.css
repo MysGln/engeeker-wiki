@@ -1,0 +1,89 @@
+/* Typography from https://jyywiki.cn/GSE/2026/lab1.md, checked 2026-10-15.
+   Keep the existing VitePress layout and brand colors. */
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Kalam-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Merienda One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/MeriendaOne-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Fira Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/FiraMono-Regular.ttf') format('truetype');
+}
+
+:root,
+:root:lang(zh) {
+  /* Preserve the reference's fallback families, including its CJK fallback. */
+  --vp-font-family-base: 'Merienda One', Arial, Helvetica, Sans;
+  --vp-font-family-mono: 'Fira Mono', monospace;
+  --wiki-font-family-reading: 'Kalam', 'Sans Serif', Sans;
+  --vp-code-font-size: 14px;
+  --vp-code-line-height: 1.5;
+}
+
+.vp-doc {
+  font-family: var(--wiki-font-family-reading);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.vp-doc p {
+  line-height: 1.625;
+}
+
+.vp-doc :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--vp-font-family-base);
+  letter-spacing: normal;
+}
+
+.vp-doc h1 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+}
+
+.vp-doc h2 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+}
+
+.vp-doc h3 {
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 700;
+}
+
+.vp-doc h4 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.vp-doc strong {
+  font-weight: 600;
+}
+
+.vp-doc :not(pre) > code {
+  font-size: 0.875em;
+  font-weight: 200;
+}
+
+.vp-doc pre,
+.vp-doc code,
+.vp-doc kbd {
+  font-family: var(--vp-font-family-mono);
+}
