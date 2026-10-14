@@ -35,6 +35,24 @@ npm run preview
 
 静态产物位于 `.vitepress/dist/`。
 
+## 自动部署
+
+同一个项目支持 GitHub Pages 与 Vercel。当前配置已准备，尚未创建远程仓库或公开发布。
+
+### GitHub Pages
+
+使用 `.github/workflows/deploy-pages.yml`。将项目推送到独立 GitHub 仓库，在仓库 Settings → Pages 中将 Source 设为 GitHub Actions。随后每次推送到 `main` 都会构建并发布；也可以在 Actions 中手动运行。
+
+工作流使用 Node.js 22、`npm ci` 和 `npm run build`，上传 `.vitepress/dist`。部署路径取自 GitHub Pages，自动适配仓库子路径和自定义域名。免费账户使用公开源码仓库；站点本身对公众可见。
+
+### Vercel
+
+使用 `vercel.json`。将同一个仓库导入 Vercel，项目根目录选择仓库根目录，安装命令 `npm ci`，构建命令 `npm run build`，输出目录 `.vitepress/dist`。后续推送会自动发布。Vercel 使用根路径，保持 `VITEPRESS_BASE` 未设置即可。
+
+从 Pages 转到 Vercel 可以直接复用此仓库和内容。转为只用 Vercel 时，删除 Pages 工作流或关闭它，避免继续双重部署；自定义域名再将 DNS 切换到新服务。原有 `github.io` 地址不能转成 Vercel 地址。Vercel Hobby 限个人非商业用途，机构用途需核对套餐条件。
+
+参考：[VitePress 1.6.4 部署指南](https://vuejs.github.io/vitepress/v1/guide/deploy)、[GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)、[Vercel Hobby](https://vercel.com/docs/plans/hobby)。
+
 ## 文件
 
 - `index.md`：默认首页。

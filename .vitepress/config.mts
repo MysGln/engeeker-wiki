@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: process.env.VITEPRESS_BASE || '/',
   srcExclude: ['README.md'],
   title: "硬壳编程 Wiki",
   description: "核心知识库",
