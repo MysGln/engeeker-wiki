@@ -37,11 +37,17 @@ npm run preview
 
 ## 自动部署
 
-同一个项目支持 GitHub Pages 与 Vercel。当前配置已准备，尚未创建远程仓库或公开发布。
+当前使用 GitHub Pages，通过 GitHub Actions 自动部署。同一个项目保留 Vercel 配置，方便以后迁移。
+
+- 网站：https://mysgln.github.io/engeeker-wiki/
+- 源码：https://github.com/MysGln/engeeker-wiki
+- 发布记录：https://github.com/MysGln/engeeker-wiki/actions
+
+更新 Markdown 后提交并推送到 `main`，网站会自动构建更新。部署是否完成以 Actions 中的运行结果为准。
 
 ### GitHub Pages
 
-使用 `.github/workflows/deploy-pages.yml`。将项目推送到独立 GitHub 仓库，在仓库 Settings → Pages 中将 Source 设为 GitHub Actions。随后每次推送到 `main` 都会构建并发布；也可以在 Actions 中手动运行。
+使用 `.github/workflows/deploy-pages.yml`，仓库 Pages 已设为 GitHub Actions。每次推送到 `main` 都会构建并发布；也可以在 Actions 中手动运行。
 
 工作流使用 Node.js 22、`npm ci` 和 `npm run build`，上传 `.vitepress/dist`。部署路径取自 GitHub Pages，自动适配仓库子路径和自定义域名。免费账户使用公开源码仓库；站点本身对公众可见。
 
@@ -76,8 +82,9 @@ git status
 git add index.md .vitepress/config.mts
 git commit -m "更新首页"
 git log --oneline
+git push
 ```
 
-`node_modules`、构建产物与缓存不会进入版本库。初始版本已建立本地提交，尚未绑定远程仓库。
+`node_modules`、构建产物与缓存不会进入版本库。本地已绑定远程仓库 `MysGln/engeeker-wiki`。提交后运行 `git push`，即可触发自动发布。
 
 此前自定义原型保存在 `.backups/engeeker-wiki-custom-backup-20261008.tar.gz`，不参与站点构建和 Git 提交。
