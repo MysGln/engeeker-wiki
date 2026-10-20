@@ -13,7 +13,6 @@ const reduced = ref(false)
 const inView = ref(true)
 const happy = ref(false)
 const greeting = ref('')
-const motionLabel = computed(() => reduced.value ? '静态模式' : paused.value ? '播放' : '暂停')
 const motionDescription = computed(() => reduced.value
   ? '系统已启用减少动态效果，当前为静态模式'
   : paused.value ? '恢复装饰动效' : '暂停装饰动效')
@@ -157,13 +156,11 @@ onUnmounted(() => {
       </div>
     </div>
     <div class="wk-bubble" :class="{ 'wk-show': greeting }" role="status" aria-live="polite">{{ greeting }}</div>
-    <span class="wk-note">点点小硬壳，打个招呼</span>
-    <button type="button" class="wk-motion" :aria-label="motionDescription" :aria-pressed="paused" :disabled="reduced" @click="setPaused(!paused)">
-      <svg v-if="!reduced" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+    <button v-if="!reduced" type="button" class="wk-motion" :aria-label="motionDescription" :title="motionDescription" :aria-pressed="paused" @click="setPaused(!paused)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
         <path v-if="paused" d="M5 3.5 12 8l-7 4.5Z" stroke-linejoin="round"/>
         <path v-else d="M5 3.5v9m6-9v9" stroke-linecap="round"/>
       </svg>
-      <span>{{ motionLabel }}</span>
     </button>
   </div>
 </template>
@@ -225,12 +222,8 @@ onUnmounted(() => {
 .wk-star-e{width:3px;height:3px;left:30%;bottom:5%;animation-delay:-3s}
 .wk-bubble{position:absolute;z-index:6;left:50%;top:0;transform:translate(-50%,0);padding:6px 13px;border:1px solid var(--wk-line);border-radius:12px 12px 12px 3px;background:var(--wk-tile);box-shadow:0 4px 14px var(--wk-shadow);color:var(--wk-brand);font-size:12px;line-height:1.4;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
 .wk-bubble.wk-show{opacity:1;transform:translate(-50%,-3px)}
-.wk-note{position:absolute;left:0;right:0;bottom:-22px;text-align:center;font:12px/1.6 Arial,"PingFang SC",sans-serif;color:var(--wk-muted);opacity:1}
-.wk-motion{position:absolute;right:0;bottom:-26px;z-index:5;display:flex;gap:4px;align-items:center;border:0;background:transparent;border-radius:6px;padding:6px;color:var(--wk-muted);font:12px/1.4 Arial,"PingFang SC",sans-serif}
+.wk-motion{position:absolute;right:0;bottom:-26px;z-index:5;display:grid;place-items:center;width:32px;height:32px;border:0;background:transparent;border-radius:6px;padding:6px;color:var(--wk-muted)}
 .wk-motion svg{width:13px;height:13px}
-.wk-motion .wk-play-icon{display:none}
-.wk-motion[aria-pressed=true] .wk-pause-icon{display:none}
-.wk-motion[aria-pressed=true] .wk-play-icon{display:block}
 .wk-motion[aria-pressed=true]{color:var(--wk-brand)}
 .wk-universe.wk-paused *,.wk-universe.wk-out-of-view *{animation-play-state:paused!important}
 .wk-universe.wk-paused .wk-depth,.wk-universe.wk-paused .wk-rings,.wk-universe.wk-paused .wk-mascot,.wk-universe.wk-paused .wk-float-wrap,.wk-universe.wk-paused .wk-token img{transform:none!important}
@@ -239,16 +232,15 @@ onUnmounted(() => {
 @keyframes wk-orbit-turn{to{rotate:360deg}}
 @keyframes wk-twinkle{0%,100%{opacity:.2}50%{opacity:.65}}
 @keyframes wk-bounce{0%,100%{translate:0 0;rotate:0deg}30%{translate:0 -10px;rotate:-3deg}65%{translate:0 -3px;rotate:2deg}}
-@media(pointer:coarse){.wk-token{position:relative}.wk-token::after{content:"";position:absolute;inset:-5px}.wk-motion{min-height:44px;bottom:-33px}}
+@media(pointer:coarse){.wk-token{position:relative}.wk-token::after{content:"";position:absolute;inset:-5px}.wk-motion{width:44px;height:44px;bottom:-33px}}
 @media(prefers-reduced-motion:reduce){.wk-universe *,.wk-universe *::before{animation:none!important;transition:none!important}.wk-depth,.wk-rings,.wk-mascot,.wk-float-wrap,.wk-token img{transform:none!important}.wk-ring{transform:rotate(-19deg)!important}.wk-ring-b{transform:rotate(39deg)!important}.wk-ring-c{transform:rotate(-49deg)!important}:deep(.wk-spark){display:none}}
 @media(max-width:680px) {
   .wk-universe { width: min(100%,390px); }
   .wk-token { width:64px;min-height:78px;padding:0 2px 3px;font-size:12px; }
   .wk-token img { width:58px;height:58px; }
   .wk-token-cpp { top:2%; } .wk-token-python { top:12%; }
-  .wk-note { bottom:-21px;font-size:11px; } .wk-motion { right:2px; }
+  .wk-motion { right:2px; }
 }
-@media(max-width:380px) { .wk-note { text-align:left;left:14px; } }
 
 </style>
 
