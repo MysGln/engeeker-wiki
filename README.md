@@ -16,3 +16,9 @@ wiki-stop   # 停止
 编辑 Markdown 页面，导航配置在 `.vitepress/config.mts`。
 
 提交并推送到 `main`，GitHub Pages 自动更新。
+
+## 首页主视觉
+
+首页沿用 VitePress 默认布局；右侧主视觉在 `.vitepress/theme/components/HomeUniverse.vue`，通过主题的 `home-hero-image` 插槽挂载。
+
+角色和 C++、Python、Scratch 图标位于 `.vitepress/theme/assets/`，均为本项目绘制的透明 WebP。动效支持暂停、离屏暂停及系统减少动态效果设置；没有新增课程正文或模块。
