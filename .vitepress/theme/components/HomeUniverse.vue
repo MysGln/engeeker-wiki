@@ -133,7 +133,6 @@ onUnmounted(() => {
     <div class="wk-atmosphere" aria-hidden="true"></div>
     <div class="wk-depth">
       <div class="wk-floor" aria-hidden="true"></div>
-      <div class="wk-platform" aria-hidden="true"></div>
       <span v-for="star in ['a','b','c','d']" :key="star" class="wk-star" :class="`wk-star-${star}`" aria-hidden="true"></span>
       <button type="button" class="wk-mascot" :class="{ 'wk-happy': happy }" aria-label="和正在读书的小硬壳打个招呼" @click="say('今天也一起探索新知识吧！')">
         <img :src="mascotImage" alt="戴蓝色耳机的绿色小硬壳，坐着翻阅书本" width="700" height="467" draggable="false" fetchpriority="high">
@@ -157,18 +156,14 @@ onUnmounted(() => {
 
 <style scoped>
 .wk-universe {
-  --wk-bg: #fff;
   --wk-ink: #3c3c43;
   --wk-brand: #25824f;
   --wk-line: #e8ebe8;
-  --wk-mint: #edf7ef;
   --wk-tile: #fff;
   --wk-halo: #d0efd775;
   --wk-grid: #9fc5a980;
   --wk-shadow: #1e583319;
   --wk-note-bg: #ffffffcc;
-  --wk-scene-start: #f1faf4;
-  --wk-scene-end: #fff;
   --wk-float: 12px;
   --wk-mx: 0;
   --wk-my: 0;
@@ -178,8 +173,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: 510px;
   aspect-ratio: 1.2;
-  border-radius: 20px;
-  background: linear-gradient(125deg, var(--wk-scene-start), var(--wk-scene-end));
+  background: transparent;
   color: var(--wk-ink);
   isolation: isolate;
   perspective: 900px;
@@ -187,18 +181,14 @@ onUnmounted(() => {
 }
 /* Follow VitePress’s document theme before hydration and on every toggle. */
 .dark .wk-universe {
-  --wk-bg: #1b1b1f;
   --wk-ink: #e3e7ec;
   --wk-brand: #77d49e;
   --wk-line: #313b41;
-  --wk-mint: #243a2e;
   --wk-tile: #24302f;
   --wk-halo: #47a46d30;
   --wk-grid: #81b79455;
   --wk-shadow: #00000040;
   --wk-note-bg: #242c27dd;
-  --wk-scene-start: #1e2b23;
-  --wk-scene-end: #1b1b1f;
 }
 .dark .wk-universe .wk-token-python { --wk-subject-ink: #9dc8ef; }
 .dark .wk-universe .wk-token-scratch { --wk-subject-ink: #f9b67c; }
@@ -209,9 +199,9 @@ onUnmounted(() => {
 .wk-universe button:focus-visible { outline: 3px solid var(--wk-brand); outline-offset: 5px; }
 .wk-atmosphere {
   position: absolute;
-  inset: 7% 0 5%;
+  inset: 15% 4% 7%;
   border-radius: 50%;
-  background: radial-gradient(ellipse at var(--wk-glow-x) var(--wk-glow-y), var(--wk-halo), transparent 64%);
+  background: radial-gradient(ellipse at var(--wk-glow-x) var(--wk-glow-y), var(--wk-halo) 0%, transparent 68%);
   pointer-events: none;
 }
 .wk-depth {
@@ -229,19 +219,6 @@ onUnmounted(() => {
   transform: rotateX(58deg) rotateZ(-28deg);
   opacity: .4;
   mask-image: radial-gradient(ellipse, #000 20%, transparent 72%);
-  pointer-events: none;
-}
-.wk-platform {
-  position: absolute;
-  left: 24%;
-  right: 15%;
-  bottom: 24%;
-  height: 12%;
-  border-radius: 22px;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--wk-brand) 18%, var(--wk-bg)), var(--wk-mint));
-  transform: rotate(-8deg) skewX(-15deg);
-  box-shadow: 0 10px 0 color-mix(in srgb, var(--wk-brand) 13%, var(--wk-bg)), 0 23px 25px var(--wk-shadow);
-  opacity: .8;
   pointer-events: none;
 }
 .wk-mascot {
@@ -370,7 +347,7 @@ onUnmounted(() => {
   .wk-token::after { content: ''; position: absolute; inset: -5px; }
 }
 @media (max-width: 680px) {
-  .wk-universe { width: min(100%, 390px); border-radius: 15px; }
+  .wk-universe { width: min(100%, 390px); }
   .wk-token { width: 56px; min-height: 74px; font-size: 11px; }
   .wk-token img { width: 53px; height: 53px; }
   .wk-code-note { right: 2%; bottom: 2%; padding: 6px 8px; font-size: 11px; }
