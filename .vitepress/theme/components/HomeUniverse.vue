@@ -15,6 +15,23 @@ const subjects = [
   { name: 'Python', key: 'python', image: pythonImage, greeting: 'Hello, Python!', label: '点亮 Python 积木' },
   { name: 'Scratch', key: 'scratch', image: scratchImage, greeting: '用积木，把想法搭出来。', label: '点亮 Scratch 图形化编程积木' }
 ]
+// Deterministic positions keep the static page and client render identical.
+const stars = Array.from({ length: 28 }, (_, i) => {
+  const angle = i * 2.39996
+  const radius = .67 + (i % 5) * .065
+  return {
+    x: 50 + Math.cos(angle) * 44 * radius,
+    y: 48 + Math.sin(angle) * 43 * radius,
+    size: i % 6 === 0 ? 7 : i % 3 === 0 ? 3 : 1.8,
+    delay: -(i * .71), duration: 3.5 + (i % 5) * .8,
+    color: ['mint', 'blue', 'gold'][i % 3], cross: i % 6 === 0
+  }
+})
+const streams = [
+  { key: 'mint', d: 'M 38 256 C 5 125 145 24 289 50 C 376 66 445 133 455 197' },
+  { key: 'blue', d: 'M 458 127 C 506 217 424 351 262 367 C 185 375 118 358 80 325' },
+  { key: 'gold', d: 'M 70 334 C 160 401 350 377 428 283' }
+]
 let frame = 0, happyFrame = 0, lastFrame = 0, bubbleTimer = 0
 let orbitFrame = 0, orbitLastTime = 0, orbitTime = 0
 let orbitWidth = 510, orbitHeight = 425
@@ -25,21 +42,22 @@ let preference: MediaQueryList | undefined
 const particles = new Map<HTMLElement, Animation>()
 const target = { x: 0, y: 0 }, position = { x: 0, y: 0 }, velocity = { x: 0, y: 0 }
 
-// One elliptical orbit shared by the three planets, with fixed spacing.
-// The far side sits behind the mascot; labels stay upright throughout.
+// Each subject drifts in its own area instead of circling on one rigid ring.
+// Keeping the subjects apart also makes their labels and click targets predictable.
 function paintOrbit() {
-  const tilt = -14 * Math.PI / 180
-  const phases = [-2.4, -.32, 2.1]
+  const anchors = [
+    { x: -.36, y: -.24, phase: .4, period: 25 },
+    { x: .35, y: -.21, phase: 2.1, period: 31 },
+    { x: -.29, y: .31, phase: 4.3, period: 28 }
+  ]
   orbitTokens.forEach((element, index) => {
-    const angle = orbitTime * Math.PI * 2 / 42 + phases[index]
-    const x = Math.cos(angle) * orbitWidth * .42
-    const y = Math.sin(angle) * orbitHeight * .36
-    const depth = (Math.sin(angle) + 1) / 2
-    element.style.setProperty('--wk-orbit-x', `${(x * Math.cos(tilt) - y * Math.sin(tilt)).toFixed(2)}px`)
-    element.style.setProperty('--wk-orbit-y', `${(x * Math.sin(tilt) + y * Math.cos(tilt)).toFixed(2)}px`)
-    element.style.setProperty('--wk-orbit-scale', (.78 + depth * .26).toFixed(3))
-    element.style.opacity = (.76 + depth * .24).toFixed(3)
-    element.style.zIndex = Math.sin(angle) > 0 ? '4' : '1'
+    const anchor = anchors[index]
+    const angle = orbitTime * Math.PI * 2 / anchor.period + anchor.phase
+    const dx = Math.cos(angle) * .025
+    const dy = Math.sin(angle) * .025
+    element.style.setProperty('--wk-orbit-x', `${((anchor.x + dx) * orbitWidth).toFixed(2)}px`)
+    element.style.setProperty('--wk-orbit-y', `${((anchor.y + dy) * orbitHeight).toFixed(2)}px`)
+    element.style.setProperty('--wk-orbit-scale', (.97 + Math.sin(angle) * .025).toFixed(3))
   })
 }
 function orbit(time: number) {
@@ -60,8 +78,6 @@ function stopOrbit() {
 function paint() {
   universe.value?.style.setProperty('--wk-mx', position.x.toFixed(4))
   universe.value?.style.setProperty('--wk-my', position.y.toFixed(4))
-  universe.value?.style.setProperty('--wk-glow-x', `${50 + position.x * 12}%`)
-  universe.value?.style.setProperty('--wk-glow-y', `${52 + position.y * 10}%`)
 }
 function resetParallax() {
   cancelAnimationFrame(frame)
@@ -182,14 +198,40 @@ onUnmounted(() => {
 <template>
   <div ref="universe" class="wk-universe" :class="{ 'wk-reduced': reduced, 'wk-out-of-view': !inView }"
     aria-label="小硬壳的像素创作工坊" @pointermove="move" @pointerleave="leave">
-    <div class="wk-atmosphere" aria-hidden="true"></div>
+    <div class="wk-atmosphere" aria-hidden="true">
+      <span class="wk-nebula wk-nebula-mint"></span>
+      <span class="wk-nebula wk-nebula-blue"></span>
+      <span class="wk-nebula wk-nebula-gold"></span>
+    </div>
     <div class="wk-depth">
-      <div class="wk-floor" aria-hidden="true"></div>
-      <svg class="wk-orbit-track" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <ellipse cx="50" cy="48" rx="42" ry="36" />
-        <ellipse class="wk-orbit-echo" cx="50" cy="48" rx="39" ry="33" />
-      </svg>
-      <span v-for="star in ['a','b','c','d']" :key="star" class="wk-star" :class="`wk-star-${star}`" aria-hidden="true"></span>
+      <div class="wk-cosmos" aria-hidden="true">
+        <svg class="wk-streams" viewBox="0 0 510 425" fill="none">
+          <defs>
+            <linearGradient id="wk-stream-mint" x1="0" y1="1" x2="1" y2="0">
+              <stop stop-color="var(--wk-brand)" stop-opacity="0" />
+              <stop offset=".45" stop-color="var(--wk-brand)" stop-opacity=".65" />
+              <stop offset="1" stop-color="var(--wk-blue)" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="wk-stream-blue" x1="1" y1="0" x2="0" y2="1">
+              <stop stop-color="var(--wk-blue)" stop-opacity="0" />
+              <stop offset=".45" stop-color="var(--wk-blue)" stop-opacity=".6" />
+              <stop offset="1" stop-color="var(--wk-brand)" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="wk-stream-gold" x1="0" y1="1" x2="1" y2="0">
+              <stop stop-color="var(--wk-gold)" stop-opacity="0" />
+              <stop offset=".5" stop-color="var(--wk-gold)" stop-opacity=".6" />
+              <stop offset="1" stop-color="var(--wk-brand)" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <g v-for="(stream, i) in streams" :key="stream.key" :class="`wk-stream-${stream.key}`" :style="{ '--wk-stream-delay': `${-i * 4}s` }">
+            <path class="wk-stream-haze" :d="stream.d" :stroke="`url(#wk-stream-${stream.key})`" />
+            <path class="wk-stream-line" :d="stream.d" :stroke="`url(#wk-stream-${stream.key})`" />
+            <path class="wk-stream-glint" :d="stream.d" pathLength="100" />
+          </g>
+        </svg>
+        <span v-for="(star, i) in stars" :key="i" class="wk-star" :class="[`wk-star-${star.color}`, { 'wk-star-cross': star.cross }]"
+          :style="{ left: `${star.x}%`, top: `${star.y}%`, width: `${star.size}px`, height: `${star.size}px`, '--wk-star-delay': `${star.delay}s`, '--wk-star-duration': `${star.duration}s` }"></span>
+      </div>
       <div class="wk-mascot" :class="{ 'wk-happy': happy }">
         <img :src="mascotImage" alt="戴蓝色耳机的绿色小硬壳，坐着翻阅书本" width="700" height="467" draggable="false" fetchpriority="high">
         <button type="button" class="wk-mascot-hit" aria-label="和正在读书的小硬壳打个招呼" @click="say('今天也一起探索新知识吧！')"></button>
@@ -200,12 +242,6 @@ onUnmounted(() => {
           <span>{{ subject.name }}</span>
         </button>
       </div>
-      <span class="wk-code-note" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m4 5 6 7-6 7M12 19h8" />
-        </svg>
-        Hello, idea!
-      </span>
     </div>
     <div class="wk-bubble" :class="{ 'wk-show': greeting }" role="status" aria-live="polite">{{ greeting }}</div>
   </div>
@@ -217,15 +253,16 @@ onUnmounted(() => {
   --wk-brand: #25824f;
   --wk-line: #e8ebe8;
   --wk-tile: #fff;
-  --wk-halo: #d0efd775;
-  --wk-grid: #9fc5a980;
+  --wk-halo: #63c99e40;
+  --wk-blue: #4e91c1;
+  --wk-gold: #bd9148;
+  --wk-cloud-blue: #70bce730;
+  --wk-cloud-gold: #e9c77529;
+  --wk-star-opacity: .6;
   --wk-shadow: #1e583319;
-  --wk-note-bg: #ffffffcc;
   --wk-float: 12px;
   --wk-mx: 0;
   --wk-my: 0;
-  --wk-glow-x: 50%;
-  --wk-glow-y: 52%;
   position: relative;
   width: 100%;
   max-width: 510px;
@@ -243,58 +280,57 @@ onUnmounted(() => {
   --wk-brand: #77d49e;
   --wk-line: #313b41;
   --wk-tile: #24302f;
-  --wk-halo: #47a46d30;
-  --wk-grid: #81b79455;
+  --wk-halo: #4bd29a32;
+  --wk-blue: #8bc8ec;
+  --wk-gold: #f4cf88;
+  --wk-cloud-blue: #509de32b;
+  --wk-cloud-gold: #dfb5581c;
+  --wk-star-opacity: .85;
   --wk-shadow: #00000040;
-  --wk-note-bg: #242c27dd;
 }
 .dark .wk-universe .wk-token-python { --wk-subject-ink: #9dc8ef; }
 .dark .wk-universe .wk-token-scratch { --wk-subject-ink: #f9b67c; }
-.dark .wk-universe .wk-star-b { background: #dfbf75; }
-.dark .wk-universe .wk-star-c { background: #9dc8ef; }
 .wk-universe *, .wk-universe *::before { box-sizing: border-box; }
 .wk-universe button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .wk-universe button:focus-visible { outline: 3px solid var(--wk-brand); outline-offset: 5px; }
 .wk-atmosphere {
   position: absolute;
-  inset: 15% 4% 7%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at var(--wk-glow-x) var(--wk-glow-y), var(--wk-halo) 0%, transparent 68%);
+  inset: 0;
   pointer-events: none;
+  transform: translate(calc(var(--wk-mx) * -4px), calc(var(--wk-my) * -3px));
 }
+.wk-nebula {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--wk-cloud) 0%, transparent 69%);
+  animation: wk-nebula-breathe 12s ease-in-out infinite alternate;
+}
+.wk-nebula-mint { --wk-cloud: var(--wk-halo); width: 78%; height: 88%; left: 8%; top: 5%; rotate: -26deg; }
+.wk-nebula-blue { --wk-cloud: var(--wk-cloud-blue); width: 55%; height: 80%; right: 3%; top: 13%; rotate: 31deg; animation-delay: -5s; }
+.wk-nebula-gold { --wk-cloud: var(--wk-cloud-gold); width: 57%; height: 42%; left: 12%; bottom: 7%; rotate: -20deg; animation-delay: -9s; }
 .wk-depth {
   position: absolute;
   inset: 0;
-  transform: rotateX(calc(var(--wk-my) * -1deg)) rotateY(calc(var(--wk-mx) * 1.5deg));
-  transform-style: preserve-3d;
+  /* Flat stacking keeps every decorative trail behind the opaque character. */
+  isolation: isolate;
+  transform: translate(calc(var(--wk-mx) * 3px), calc(var(--wk-my) * 2px));
 }
-.wk-floor {
-  position: absolute;
-  inset: 30% 6% 8%;
-  border-radius: 30px;
-  background-image: linear-gradient(var(--wk-grid) 1px, transparent 1px), linear-gradient(90deg, var(--wk-grid) 1px, transparent 1px);
-  background-size: 23px 23px;
-  transform: rotateX(58deg) rotateZ(-28deg);
-  opacity: .4;
-  mask-image: radial-gradient(ellipse, #000 20%, transparent 72%);
-  pointer-events: none;
+.wk-cosmos { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.wk-streams { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.wk-streams path { vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.wk-stream-haze { stroke-width: 9; opacity: .18; filter: blur(4px); }
+.wk-stream-line { stroke-width: 1; opacity: .62; }
+.wk-stream-glint {
+  stroke: var(--wk-stream-color, var(--wk-brand));
+  stroke-width: 1.5;
+  stroke-dasharray: 1.5 98.5;
+  stroke-dashoffset: 100;
+  animation: wk-comet 14s linear infinite;
+  animation-delay: var(--wk-stream-delay);
+  filter: drop-shadow(0 0 3px var(--wk-stream-color, var(--wk-brand)));
 }
-.wk-orbit-track {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  transform: rotate(-14deg);
-  transform-origin: 50% 48%;
-  fill: none;
-  stroke: var(--wk-brand);
-  stroke-width: .7px;
-  stroke-opacity: .24;
-  pointer-events: none;
-}
-.wk-orbit-track ellipse { vector-effect: non-scaling-stroke; }
-.wk-orbit-track .wk-orbit-echo { stroke-dasharray: 2 5; stroke-opacity: .12; }
+.wk-stream-blue { --wk-stream-color: var(--wk-blue); }
+.wk-stream-gold { --wk-stream-color: var(--wk-gold); }
 .wk-mascot {
   position: absolute;
   width: 80%;
@@ -354,74 +390,51 @@ onUnmounted(() => {
   background: transparent;
   color: var(--wk-brand);
   font: 500 12px/1.4 'Merienda One', Arial, sans-serif;
-  animation: wk-hover 6.5s ease-in-out infinite;
+
 }
 .wk-token::before {
   content: '';
   position: absolute;
   z-index: -1;
-  left: 50%;
-  top: 0;
-  width: 72px;
-  aspect-ratio: 1;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--wk-subject-ink, var(--wk-brand)) 18%, transparent), transparent 72%);
-  box-shadow: inset 0 0 0 .75px color-mix(in srgb, var(--wk-subject-ink, var(--wk-brand)) 25%, transparent);
+  inset: -15% -28% 0;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--wk-subject-ink, var(--wk-brand)) 20%, transparent), transparent 65%);
+  opacity: .55;
+  transition: opacity .35s;
   pointer-events: none;
 }
+.wk-token:hover::before, .wk-token:focus-visible::before { opacity: 1; }
 .wk-token img {
   display: block;
   width: 70px;
   height: 70px;
   object-fit: contain;
   scale: var(--wk-icon-scale, 1.2);
-  filter: drop-shadow(0 6px 8px var(--wk-shadow));
+  filter: drop-shadow(0 5px 7px var(--wk-shadow));
   transition: transform .38s cubic-bezier(.2, .7, .3, 1), filter .38s ease;
   user-select: none;
   -webkit-user-drag: none;
 }
 .wk-token span { color: var(--wk-subject-ink, var(--wk-brand)); }
 .wk-token:hover img, .wk-token:focus-visible img { transform: translateY(-3px) scale(1.06); }
-.wk-token-cpp { --wk-orbit-x: -34cqw; --wk-orbit-y: -13cqw; --wk-orbit-scale: .82; }
-.wk-token-python { --wk-orbit-x: 36cqw; --wk-orbit-y: -19cqw; --wk-orbit-scale: .86; --wk-subject-ink: #3b719f; }
-.wk-token-python button { animation-delay: -2.2s; }
-.wk-token-scratch { --wk-orbit-x: -14cqw; --wk-orbit-y: 30cqw; --wk-orbit-scale: 1.02; --wk-icon-scale: 1; --wk-subject-ink: #ab6024; }
-.wk-token-scratch button { animation-delay: -4.1s; }
+.wk-token-cpp { --wk-orbit-x: -34cqw; --wk-orbit-y: -19cqw; --wk-orbit-scale: .98; }
+.wk-token-python { --wk-orbit-x: 34cqw; --wk-orbit-y: -16cqw; --wk-orbit-scale: .99; --wk-subject-ink: #3b719f; }
+.wk-token-scratch { --wk-orbit-x: -30cqw; --wk-orbit-y: 24cqw; --wk-orbit-scale: .95; --wk-icon-scale: 1; --wk-subject-ink: #ab6024; }
 .wk-star {
   position: absolute;
-  width: 6px;
-  height: 6px;
-  clip-path: polygon(50% 0, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0 50%, 37% 37%);
-  background: var(--wk-brand);
-  opacity: .35;
-  animation: wk-twinkle 5s ease-in-out infinite;
-  pointer-events: none;
-}
-.wk-star-a { left: 34%; top: 6%; rotate: 18deg; }
-.wk-star-b { right: 16%; top: 10%; background: #b78a32; animation-delay: -2s; }
-.wk-star-c { right: 3%; top: 58%; background: #3b719f; animation-delay: -1s; }
-.wk-star-d { left: 25%; bottom: 6%; animation-delay: -3s; }
-.wk-code-note {
-  position: absolute;
-  right: 4%;
-  bottom: 4%;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 11px;
-  border: 1px solid var(--wk-grid);
-  border-radius: 9px;
-  background: var(--wk-note-bg);
+  border-radius: 50%;
   color: var(--wk-brand);
-  font: 12px/1.4 'Merienda One', Arial, sans-serif;
-  rotate: 4deg;
-  animation: wk-hover 7s ease-in-out infinite;
-  animation-delay: -3s;
-  pointer-events: none;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  opacity: .4;
+  animation: wk-twinkle var(--wk-star-duration) ease-in-out infinite;
+  animation-delay: var(--wk-star-delay);
 }
-.wk-code-note svg { width: 14px; height: 14px; }
+.wk-star-blue { color: var(--wk-blue); }
+.wk-star-gold { color: var(--wk-gold); }
+.wk-star-cross {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%);
+}
 .wk-bubble {
   position: absolute;
   z-index: 6;
@@ -446,7 +459,9 @@ onUnmounted(() => {
 .wk-universe.wk-reduced :is(.wk-depth, .wk-mascot, .wk-token img) { transform: none !important; }
 :deep(.wk-spark) { position: absolute; z-index: 7; left: 50%; top: 45%; width: 5px; height: 5px; pointer-events: none; border-radius: 1px; background: var(--wk-brand); }
 @keyframes wk-hover { 0%, 100% { translate: 0 0; } 50% { translate: 0 calc(var(--wk-float) * -1); } }
-@keyframes wk-twinkle { 0%, 100% { opacity: .18; } 50% { opacity: .55; } }
+@keyframes wk-twinkle { 0%, 100% { opacity: .15; scale: .7; } 50% { opacity: var(--wk-star-opacity); scale: 1.1; } }
+@keyframes wk-nebula-breathe { from { opacity: .65; scale: .94; } to { opacity: 1; scale: 1.06; } }
+@keyframes wk-comet { 0% { stroke-dashoffset: 100; opacity: 0; } 12%, 72% { opacity: .85; } 92%, 100% { stroke-dashoffset: 0; opacity: 0; } }
 @keyframes wk-bounce { 0%, 100% { translate: 0 0; rotate: 0deg; } 30% { translate: 0 -10px; rotate: -3deg; } 65% { translate: 0 -3px; rotate: 2deg; } }
 @media (pointer: coarse) {
   .wk-token { position: relative; }
@@ -456,13 +471,11 @@ onUnmounted(() => {
   .wk-universe { width: min(100%, 390px); }
   .wk-token { width: 56px; min-height: 74px; font-size: 11px; }
   .wk-token img { width: 53px; height: 53px; }
-  .wk-token::before { width: 55px; }
-  .wk-code-note { right: 2%; bottom: 2%; padding: 6px 8px; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wk-universe *, .wk-universe *::before { animation: none !important; transition: none !important; }
   .wk-depth, .wk-mascot, .wk-token img { transform: none !important; }
-  :deep(.wk-spark) { display: none; }
+  :deep(.wk-spark), .wk-stream-glint { display: none; }
 }
 </style>
 
