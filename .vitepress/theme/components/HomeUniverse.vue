@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useData } from 'vitepress'
 import mascotImage from '../assets/hardshell-reading-v1.webp'
 import cppImage from '../assets/subject-cpp-v2.webp'
@@ -8,14 +8,10 @@ import scratchImage from '../assets/subject-scratch-v2.webp'
 
 const { isDark } = useData()
 const universe = ref<HTMLElement>()
-const paused = ref(false)
 const reduced = ref(false)
 const inView = ref(true)
 const happy = ref(false)
 const greeting = ref('')
-const motionDescription = computed(() => reduced.value
-  ? '系统已启用减少动态效果，当前为静态模式'
-  : paused.value ? '恢复装饰动效' : '暂停装饰动效')
 const subjects = [
   { name: 'C++', key: 'cpp', image: cppImage, greeting: '你好，C++！', label: '点亮 C++ 积木' },
   { name: 'Python', key: 'python', image: pythonImage, greeting: 'Hello, Python!', label: '点亮 Python 积木' },
@@ -39,7 +35,7 @@ function resetParallax() {
 }
 function glide(time: number) {
   frame = 0
-  if (paused.value || reduced.value || !inView.value) { lastFrame = 0; return }
+  if (reduced.value || !inView.value) { lastFrame = 0; return }
   const dt = lastFrame ? Math.min((time - lastFrame) / 1000, 1 / 30) : 1 / 60
   lastFrame = time
   for (const axis of ['x', 'y'] as const) {
@@ -52,10 +48,10 @@ function glide(time: number) {
   if (moving) frame = requestAnimationFrame(glide)
 }
 function scheduleGlide() {
-  if (!frame && !paused.value && !reduced.value && inView.value) frame = requestAnimationFrame(glide)
+  if (!frame && !reduced.value && inView.value) frame = requestAnimationFrame(glide)
 }
 function move(event: PointerEvent) {
-  if (paused.value || reduced.value || event.pointerType === 'touch' || !universe.value) return
+  if (reduced.value || event.pointerType === 'touch' || !universe.value) return
   const box = universe.value.getBoundingClientRect()
   target.x = Math.max(-1, Math.min(1, (event.clientX-box.left)/box.width*2-1))
   target.y = Math.max(-1, Math.min(1, (event.clientY-box.top)/box.height*2-1))
@@ -66,9 +62,9 @@ function clearParticles() {
   particles.forEach((animation, element) => { animation.cancel(); element.remove() })
   particles.clear()
 }
-function setPaused(value: boolean) {
-  paused.value = value || reduced.value
-  if (paused.value) {
+function setMotionPreference(value: boolean) {
+  reduced.value = value
+  if (value) {
     resetParallax()
     cancelAnimationFrame(happyFrame)
     happyFrame = 0
@@ -77,15 +73,14 @@ function setPaused(value: boolean) {
   }
 }
 function preferenceChanged(event: MediaQueryListEvent) {
-  reduced.value = event.matches
-  setPaused(event.matches)
+  setMotionPreference(event.matches)
 }
 function say(text: string) {
   clearTimeout(bubbleTimer)
   cancelAnimationFrame(happyFrame)
   happy.value = false
   greeting.value = text
-  if (!paused.value && !reduced.value && inView.value && universe.value) {
+  if (!reduced.value && inView.value && universe.value) {
     happyFrame = requestAnimationFrame(() => { happyFrame = 0; happy.value = true })
     clearParticles()
     for (let i=0; i<9; i++) {
@@ -108,8 +103,7 @@ function say(text: string) {
 }
 onMounted(() => {
   preference = window.matchMedia('(prefers-reduced-motion: reduce)')
-  reduced.value = preference.matches
-  setPaused(preference.matches)
+  setMotionPreference(preference.matches)
   preference.addEventListener('change', preferenceChanged)
   observer = new IntersectionObserver(([entry]) => {
     inView.value = entry.isIntersecting
@@ -134,7 +128,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="universe" class="wk-universe" :class="{ 'wk-dark': isDark, 'wk-paused': paused, 'wk-out-of-view': !inView }"
+  <div ref="universe" class="wk-universe" :class="{ 'wk-dark': isDark, 'wk-reduced': reduced, 'wk-out-of-view': !inView }"
     aria-label="小硬壳的知识小宇宙" @pointermove="move" @pointerleave="leave">
     <div class="wk-atmosphere" aria-hidden="true"></div>
     <div class="wk-halo" aria-hidden="true"></div>
@@ -156,12 +150,6 @@ onUnmounted(() => {
       </div>
     </div>
     <div class="wk-bubble" :class="{ 'wk-show': greeting }" role="status" aria-live="polite">{{ greeting }}</div>
-    <button v-if="!reduced" type="button" class="wk-motion" :aria-label="motionDescription" :title="motionDescription" :aria-pressed="paused" @click="setPaused(!paused)">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <path v-if="paused" d="M5 3.5 12 8l-7 4.5Z" stroke-linejoin="round"/>
-        <path v-else d="M5 3.5v9m6-9v9" stroke-linecap="round"/>
-      </svg>
-    </button>
   </div>
 </template>
 
@@ -222,24 +210,20 @@ onUnmounted(() => {
 .wk-star-e{width:3px;height:3px;left:30%;bottom:5%;animation-delay:-3s}
 .wk-bubble{position:absolute;z-index:6;left:50%;top:0;transform:translate(-50%,0);padding:6px 13px;border:1px solid var(--wk-line);border-radius:12px 12px 12px 3px;background:var(--wk-tile);box-shadow:0 4px 14px var(--wk-shadow);color:var(--wk-brand);font-size:12px;line-height:1.4;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
 .wk-bubble.wk-show{opacity:1;transform:translate(-50%,-3px)}
-.wk-motion{position:absolute;right:0;bottom:-26px;z-index:5;display:grid;place-items:center;width:32px;height:32px;border:0;background:transparent;border-radius:6px;padding:6px;color:var(--wk-muted)}
-.wk-motion svg{width:13px;height:13px}
-.wk-motion[aria-pressed=true]{color:var(--wk-brand)}
-.wk-universe.wk-paused *,.wk-universe.wk-out-of-view *{animation-play-state:paused!important}
-.wk-universe.wk-paused .wk-depth,.wk-universe.wk-paused .wk-rings,.wk-universe.wk-paused .wk-mascot,.wk-universe.wk-paused .wk-float-wrap,.wk-universe.wk-paused .wk-token img{transform:none!important}
+.wk-universe.wk-reduced *,.wk-universe.wk-out-of-view *{animation-play-state:paused!important}
+.wk-universe.wk-reduced .wk-depth,.wk-universe.wk-reduced .wk-rings,.wk-universe.wk-reduced .wk-mascot,.wk-universe.wk-reduced .wk-float-wrap,.wk-universe.wk-reduced .wk-token img{transform:none!important}
 :deep(.wk-spark){position:absolute;z-index:7;left:50%;top:45%;width:5px;height:5px;pointer-events:none;border-radius:1px;background:var(--wk-brand)}
 @keyframes wk-hover{0%,100%{translate:0 0}50%{translate:0 calc(var(--wk-float)*-1)}}
 @keyframes wk-orbit-turn{to{rotate:360deg}}
 @keyframes wk-twinkle{0%,100%{opacity:.2}50%{opacity:.65}}
 @keyframes wk-bounce{0%,100%{translate:0 0;rotate:0deg}30%{translate:0 -10px;rotate:-3deg}65%{translate:0 -3px;rotate:2deg}}
-@media(pointer:coarse){.wk-token{position:relative}.wk-token::after{content:"";position:absolute;inset:-5px}.wk-motion{width:44px;height:44px;bottom:-33px}}
+@media(pointer:coarse){.wk-token{position:relative}.wk-token::after{content:"";position:absolute;inset:-5px}}
 @media(prefers-reduced-motion:reduce){.wk-universe *,.wk-universe *::before{animation:none!important;transition:none!important}.wk-depth,.wk-rings,.wk-mascot,.wk-float-wrap,.wk-token img{transform:none!important}.wk-ring{transform:rotate(-19deg)!important}.wk-ring-b{transform:rotate(39deg)!important}.wk-ring-c{transform:rotate(-49deg)!important}:deep(.wk-spark){display:none}}
 @media(max-width:680px) {
   .wk-universe { width: min(100%,390px); }
   .wk-token { width:64px;min-height:78px;padding:0 2px 3px;font-size:12px; }
   .wk-token img { width:58px;height:58px; }
   .wk-token-cpp { top:2%; } .wk-token-python { top:12%; }
-  .wk-motion { right:2px; }
 }
 
 </style>
