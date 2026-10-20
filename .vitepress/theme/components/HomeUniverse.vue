@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import { useData } from 'vitepress'
 import mascotImage from '../assets/hardshell-reading-v1.webp'
 import cppImage from '../assets/subject-cpp-v2.webp'
 import pythonImage from '../assets/subject-python-v2.webp'
 import scratchImage from '../assets/subject-scratch-v2.webp'
 
-const { isDark } = useData()
 const universe = ref<HTMLElement>()
 const reduced = ref(false)
 const inView = ref(true)
@@ -130,7 +128,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="universe" class="wk-universe" :class="{ 'wk-dark': isDark, 'wk-reduced': reduced, 'wk-out-of-view': !inView }"
+  <div ref="universe" class="wk-universe" :class="{ 'wk-reduced': reduced, 'wk-out-of-view': !inView }"
     aria-label="小硬壳的像素创作工坊" @pointermove="move" @pointerleave="leave">
     <div class="wk-atmosphere" aria-hidden="true"></div>
     <div class="wk-depth">
@@ -187,7 +185,8 @@ onUnmounted(() => {
   perspective: 900px;
   touch-action: pan-y;
 }
-.wk-dark {
+/* Follow VitePress’s document theme before hydration and on every toggle. */
+.dark .wk-universe {
   --wk-bg: #1b1b1f;
   --wk-ink: #e3e7ec;
   --wk-brand: #77d49e;
@@ -201,10 +200,10 @@ onUnmounted(() => {
   --wk-scene-start: #1e2b23;
   --wk-scene-end: #1b1b1f;
 }
-.wk-dark .wk-token-python { --wk-subject-ink: #9dc8ef; }
-.wk-dark .wk-token-scratch { --wk-subject-ink: #f9b67c; }
-.wk-dark .wk-star-b { background: #dfbf75; }
-.wk-dark .wk-star-c { background: #9dc8ef; }
+.dark .wk-universe .wk-token-python { --wk-subject-ink: #9dc8ef; }
+.dark .wk-universe .wk-token-scratch { --wk-subject-ink: #f9b67c; }
+.dark .wk-universe .wk-star-b { background: #dfbf75; }
+.dark .wk-universe .wk-star-c { background: #9dc8ef; }
 .wk-universe *, .wk-universe *::before { box-sizing: border-box; }
 .wk-universe button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .wk-universe button:focus-visible { outline: 3px solid var(--wk-brand); outline-offset: 5px; }
