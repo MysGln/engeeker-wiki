@@ -16,11 +16,47 @@ const subjects = [
   { name: 'Scratch', key: 'scratch', image: scratchImage, greeting: '用积木，把想法搭出来。', label: '点亮 Scratch 图形化编程积木' }
 ]
 let frame = 0, happyFrame = 0, lastFrame = 0, bubbleTimer = 0
+let orbitFrame = 0, orbitLastTime = 0, orbitTime = 0
+let orbitWidth = 510, orbitHeight = 425
+let orbitTokens: HTMLElement[] = []
+let sizeObserver: ResizeObserver | undefined
 let observer: IntersectionObserver | undefined
 let preference: MediaQueryList | undefined
 const particles = new Map<HTMLElement, Animation>()
 const target = { x: 0, y: 0 }, position = { x: 0, y: 0 }, velocity = { x: 0, y: 0 }
 
+// One elliptical orbit shared by the three planets, with fixed spacing.
+// The far side sits behind the mascot; labels stay upright throughout.
+function paintOrbit() {
+  const tilt = -14 * Math.PI / 180
+  const phases = [-2.4, -.32, 2.1]
+  orbitTokens.forEach((element, index) => {
+    const angle = orbitTime * Math.PI * 2 / 42 + phases[index]
+    const x = Math.cos(angle) * orbitWidth * .42
+    const y = Math.sin(angle) * orbitHeight * .36
+    const depth = (Math.sin(angle) + 1) / 2
+    element.style.setProperty('--wk-orbit-x', `${(x * Math.cos(tilt) - y * Math.sin(tilt)).toFixed(2)}px`)
+    element.style.setProperty('--wk-orbit-y', `${(x * Math.sin(tilt) + y * Math.cos(tilt)).toFixed(2)}px`)
+    element.style.setProperty('--wk-orbit-scale', (.78 + depth * .26).toFixed(3))
+    element.style.opacity = (.76 + depth * .24).toFixed(3)
+    element.style.zIndex = Math.sin(angle) > 0 ? '4' : '1'
+  })
+}
+function orbit(time: number) {
+  orbitFrame = 0
+  if (reduced.value || !inView.value) { orbitLastTime = 0; return }
+  if (orbitLastTime) orbitTime += Math.min(time - orbitLastTime, 64) / 1000
+  orbitLastTime = time
+  paintOrbit()
+  orbitFrame = requestAnimationFrame(orbit)
+}
+function startOrbit() {
+  if (!orbitFrame && !reduced.value && inView.value) orbitFrame = requestAnimationFrame(orbit)
+}
+function stopOrbit() {
+  cancelAnimationFrame(orbitFrame)
+  orbitFrame = orbitLastTime = 0
+}
 function paint() {
   universe.value?.style.setProperty('--wk-mx', position.x.toFixed(4))
   universe.value?.style.setProperty('--wk-my', position.y.toFixed(4))
@@ -65,12 +101,13 @@ function clearParticles() {
 function setMotionPreference(value: boolean) {
   reduced.value = value
   if (value) {
+    stopOrbit()
     resetParallax()
     cancelAnimationFrame(happyFrame)
     happyFrame = 0
     happy.value = false
     clearParticles()
-  }
+  } else startOrbit()
 }
 function preferenceChanged(event: MediaQueryListEvent) {
   setMotionPreference(event.matches)
@@ -102,22 +139,37 @@ function say(text: string) {
   bubbleTimer = window.setTimeout(() => { greeting.value = ''; happy.value = false }, 2300)
 }
 onMounted(() => {
+  if (universe.value) {
+    orbitTokens = Array.from(universe.value.querySelectorAll<HTMLElement>('.wk-float-wrap'))
+    orbitWidth = universe.value.clientWidth
+    orbitHeight = universe.value.clientHeight
+    paintOrbit()
+    sizeObserver = new ResizeObserver(([entry]) => {
+      orbitWidth = entry.contentRect.width
+      orbitHeight = entry.contentRect.height
+      paintOrbit()
+    })
+    sizeObserver.observe(universe.value)
+  }
   preference = window.matchMedia('(prefers-reduced-motion: reduce)')
   setMotionPreference(preference.matches)
   preference.addEventListener('change', preferenceChanged)
   observer = new IntersectionObserver(([entry]) => {
     inView.value = entry.isIntersecting
     if (!inView.value) {
+      stopOrbit()
       resetParallax()
       cancelAnimationFrame(happyFrame)
       happyFrame = 0
       happy.value = false
       clearParticles()
-    }
+    } else startOrbit()
   })
   if (universe.value) observer.observe(universe.value)
 })
 onUnmounted(() => {
+  stopOrbit()
+  sizeObserver?.disconnect()
   cancelAnimationFrame(frame)
   cancelAnimationFrame(happyFrame)
   clearTimeout(bubbleTimer)
@@ -133,10 +185,15 @@ onUnmounted(() => {
     <div class="wk-atmosphere" aria-hidden="true"></div>
     <div class="wk-depth">
       <div class="wk-floor" aria-hidden="true"></div>
+      <svg class="wk-orbit-track" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <ellipse cx="50" cy="48" rx="42" ry="36" />
+        <ellipse class="wk-orbit-echo" cx="50" cy="48" rx="39" ry="33" />
+      </svg>
       <span v-for="star in ['a','b','c','d']" :key="star" class="wk-star" :class="`wk-star-${star}`" aria-hidden="true"></span>
-      <button type="button" class="wk-mascot" :class="{ 'wk-happy': happy }" aria-label="和正在读书的小硬壳打个招呼" @click="say('今天也一起探索新知识吧！')">
+      <div class="wk-mascot" :class="{ 'wk-happy': happy }">
         <img :src="mascotImage" alt="戴蓝色耳机的绿色小硬壳，坐着翻阅书本" width="700" height="467" draggable="false" fetchpriority="high">
-      </button>
+        <button type="button" class="wk-mascot-hit" aria-label="和正在读书的小硬壳打个招呼" @click="say('今天也一起探索新知识吧！')"></button>
+      </div>
       <div v-for="subject in subjects" :key="subject.key" class="wk-float-wrap" :class="`wk-token-${subject.key}`">
         <button type="button" class="wk-token" :aria-label="subject.label" @click="say(subject.greeting)">
           <img :src="subject.image" alt="" width="78" height="78" draggable="false">
@@ -173,6 +230,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: 510px;
   aspect-ratio: 1.2;
+  container-type: inline-size;
   background: transparent;
   color: var(--wk-ink);
   isolation: isolate;
@@ -221,6 +279,22 @@ onUnmounted(() => {
   mask-image: radial-gradient(ellipse, #000 20%, transparent 72%);
   pointer-events: none;
 }
+.wk-orbit-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-14deg);
+  transform-origin: 50% 48%;
+  fill: none;
+  stroke: var(--wk-brand);
+  stroke-width: .7px;
+  stroke-opacity: .24;
+  pointer-events: none;
+}
+.wk-orbit-track ellipse { vector-effect: non-scaling-stroke; }
+.wk-orbit-track .wk-orbit-echo { stroke-dasharray: 2 5; stroke-opacity: .12; }
 .wk-mascot {
   position: absolute;
   width: 80%;
@@ -233,6 +307,18 @@ onUnmounted(() => {
   border-radius: 45%;
   z-index: 3;
   line-height: 0;
+}
+.wk-mascot { pointer-events: none; }
+.wk-mascot-hit {
+  position: absolute;
+  left: 32%;
+  top: 24%;
+  width: 48%;
+  height: 68%;
+  border: 0;
+  border-radius: 40%;
+  background: transparent;
+  pointer-events: auto;
 }
 .wk-mascot img {
   display: block;
@@ -247,10 +333,15 @@ onUnmounted(() => {
 .wk-mascot.wk-happy img { animation: wk-bounce .65s cubic-bezier(.26, .6, .34, 1) 1; }
 .wk-float-wrap {
   position: absolute;
+  left: 50%;
+  top: 48%;
   z-index: 4;
-  transform: translate(calc(var(--wk-mx) * -7px), calc(var(--wk-my) * -6px));
+  transform: translate(-50%, -50%) translate(calc(var(--wk-orbit-x) + var(--wk-mx) * -7px), calc(var(--wk-orbit-y) + var(--wk-my) * -6px)) scale(var(--wk-orbit-scale));
+  will-change: transform;
 }
 .wk-token {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -265,6 +356,20 @@ onUnmounted(() => {
   font: 500 12px/1.4 'Merienda One', Arial, sans-serif;
   animation: wk-hover 6.5s ease-in-out infinite;
 }
+.wk-token::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 0;
+  width: 72px;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--wk-subject-ink, var(--wk-brand)) 18%, transparent), transparent 72%);
+  box-shadow: inset 0 0 0 .75px color-mix(in srgb, var(--wk-subject-ink, var(--wk-brand)) 25%, transparent);
+  pointer-events: none;
+}
 .wk-token img {
   display: block;
   width: 70px;
@@ -278,15 +383,16 @@ onUnmounted(() => {
 }
 .wk-token span { color: var(--wk-subject-ink, var(--wk-brand)); }
 .wk-token:hover img, .wk-token:focus-visible img { transform: translateY(-3px) scale(1.06); }
-.wk-token-cpp { left: 0; top: 9%; }
-.wk-token-python { right: 0; top: 17%; --wk-subject-ink: #3b719f; }
+.wk-token-cpp { --wk-orbit-x: -34cqw; --wk-orbit-y: -13cqw; --wk-orbit-scale: .82; }
+.wk-token-python { --wk-orbit-x: 36cqw; --wk-orbit-y: -19cqw; --wk-orbit-scale: .86; --wk-subject-ink: #3b719f; }
 .wk-token-python button { animation-delay: -2.2s; }
-.wk-token-scratch { left: 5%; bottom: 5%; --wk-icon-scale: 1; --wk-subject-ink: #ab6024; }
+.wk-token-scratch { --wk-orbit-x: -14cqw; --wk-orbit-y: 30cqw; --wk-orbit-scale: 1.02; --wk-icon-scale: 1; --wk-subject-ink: #ab6024; }
 .wk-token-scratch button { animation-delay: -4.1s; }
 .wk-star {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
+  clip-path: polygon(50% 0, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0 50%, 37% 37%);
   background: var(--wk-brand);
   opacity: .35;
   animation: wk-twinkle 5s ease-in-out infinite;
@@ -337,7 +443,7 @@ onUnmounted(() => {
 }
 .wk-bubble.wk-show { opacity: 1; transform: translate(-50%, -3px); }
 .wk-universe.wk-reduced *, .wk-universe.wk-out-of-view * { animation-play-state: paused !important; }
-.wk-universe.wk-reduced :is(.wk-depth, .wk-mascot, .wk-float-wrap, .wk-token img) { transform: none !important; }
+.wk-universe.wk-reduced :is(.wk-depth, .wk-mascot, .wk-token img) { transform: none !important; }
 :deep(.wk-spark) { position: absolute; z-index: 7; left: 50%; top: 45%; width: 5px; height: 5px; pointer-events: none; border-radius: 1px; background: var(--wk-brand); }
 @keyframes wk-hover { 0%, 100% { translate: 0 0; } 50% { translate: 0 calc(var(--wk-float) * -1); } }
 @keyframes wk-twinkle { 0%, 100% { opacity: .18; } 50% { opacity: .55; } }
@@ -350,11 +456,12 @@ onUnmounted(() => {
   .wk-universe { width: min(100%, 390px); }
   .wk-token { width: 56px; min-height: 74px; font-size: 11px; }
   .wk-token img { width: 53px; height: 53px; }
+  .wk-token::before { width: 55px; }
   .wk-code-note { right: 2%; bottom: 2%; padding: 6px 8px; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wk-universe *, .wk-universe *::before { animation: none !important; transition: none !important; }
-  .wk-depth, .wk-mascot, .wk-float-wrap, .wk-token img { transform: none !important; }
+  .wk-depth, .wk-mascot, .wk-token img { transform: none !important; }
   :deep(.wk-spark) { display: none; }
 }
 </style>
