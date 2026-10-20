@@ -28,9 +28,9 @@ const stars = Array.from({ length: 28 }, (_, i) => {
   }
 })
 const streams = [
-  { key: 'mint', d: 'M 38 256 C 5 125 145 24 289 50 C 376 66 445 133 455 197' },
-  { key: 'blue', d: 'M 458 127 C 506 217 424 351 262 367 C 185 375 118 358 80 325' },
-  { key: 'gold', d: 'M 70 334 C 160 401 350 377 428 283' }
+  { key: 'mint', d: 'M 210 292 C 113 301 35 210 75 128 C 96 85 157 52 218 60' },
+  { key: 'blue', d: 'M 272 275 C 374 308 467 235 445 164 C 431 113 402 90 363 81' },
+  { key: 'gold', d: 'M 183 285 C 191 355 337 384 402 331 C 438 302 434 277 421 260' }
 ]
 let frame = 0, happyFrame = 0, lastFrame = 0, bubbleTimer = 0
 let orbitFrame = 0, orbitLastTime = 0, orbitTime = 0
@@ -232,6 +232,20 @@ onUnmounted(() => {
         <span v-for="(star, i) in stars" :key="i" class="wk-star" :class="[`wk-star-${star.color}`, { 'wk-star-cross': star.cross }]"
           :style="{ left: `${star.x}%`, top: `${star.y}%`, width: `${star.size}px`, height: `${star.size}px`, '--wk-star-delay': `${star.delay}s`, '--wk-star-duration': `${star.duration}s` }"></span>
       </div>
+      <div class="wk-seeds" aria-hidden="true">
+        <svg class="wk-seed wk-seed-sprout" viewBox="0 0 64 64">
+          <path fill="#318251" d="M28 30h8v24h-8zM12 12h16v8h8v16H20v-8h-8zm24 8h8v-8h12v16h-8v8H36z"/>
+          <path fill="#b9d974" d="M12 12h16v8h-8v8h-8zm32 0h12v8H44z"/>
+          <path fill="#74b768" d="M20 20h8v8h8v8H20zm16 8h12v8H36z"/>
+        </svg>
+        <svg class="wk-seed wk-seed-cube" viewBox="0 0 48 48">
+          <path fill="#b9d977" d="m24 4 18 10-18 10L6 14z"/><path fill="#65a466" d="m6 14 18 10v21L6 35z"/><path fill="#2d7954" d="m24 24 18-10v21L24 45z"/>
+          <path fill="#eff0b4" d="m16 10 8-4 8 4-8 5z"/><path stroke="#cae6a3" stroke-width="2" d="m10 19 10 6v12" fill="none"/>
+        </svg>
+        <svg class="wk-seed wk-seed-code" viewBox="0 0 58 36" fill="none">
+          <path d="m18 8-10 10 10 10m22-20 10 10-10 10M33 4l-8 28" stroke="currentColor" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter"/>
+        </svg>
+      </div>
       <div class="wk-mascot" :class="{ 'wk-happy': happy }">
         <img :src="mascotImage" alt="戴蓝色耳机的绿色小硬壳，坐着翻阅书本" width="700" height="467" draggable="false" fetchpriority="high">
         <button type="button" class="wk-mascot-hit" aria-label="和正在读书的小硬壳打个招呼" @click="say('今天也一起探索新知识吧！')"></button>
@@ -318,7 +332,7 @@ onUnmounted(() => {
 .wk-cosmos { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .wk-streams { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .wk-streams path { vector-effect: non-scaling-stroke; stroke-linecap: round; }
-.wk-stream-haze { stroke-width: 9; opacity: .18; filter: blur(4px); }
+.wk-stream-haze { stroke-width: 9; opacity: .18; filter: blur(4px); transition:opacity .6s; }
 .wk-stream-line { stroke-width: 1; opacity: .62; }
 .wk-stream-glint {
   stroke: var(--wk-stream-color, var(--wk-brand));
@@ -331,6 +345,12 @@ onUnmounted(() => {
 }
 .wk-stream-blue { --wk-stream-color: var(--wk-blue); }
 .wk-stream-gold { --wk-stream-color: var(--wk-gold); }
+.wk-seeds { position:absolute; inset:0; z-index:1; pointer-events:none; }
+.wk-seed { position:absolute; width:32px; height:32px; filter:drop-shadow(0 5px 7px var(--wk-shadow)); animation:wk-seed-drift 9s ease-in-out infinite; transition:filter .5s; }
+.wk-seed-sprout { left:43%; top:2%; width:37px; height:37px; rotate:16deg; }
+.wk-seed-cube { right:13%; bottom:14%; rotate:-12deg; animation-delay:-3s; }
+.wk-seed-code { left:9%; top:47%; width:29px; height:22px; color:var(--wk-brand); opacity:.55; rotate:-14deg; animation-delay:-6s; }
+@keyframes wk-seed-drift { 0%,100% { translate:0 3px; } 50% { translate:3px -6px; } }
 .wk-mascot {
   position: absolute;
   width: 80%;
@@ -421,7 +441,7 @@ onUnmounted(() => {
 .wk-token-scratch { --wk-orbit-x: -30cqw; --wk-orbit-y: 24cqw; --wk-orbit-scale: .95; --wk-icon-scale: 1; --wk-subject-ink: #ab6024; }
 .wk-star {
   position: absolute;
-  border-radius: 50%;
+  border-radius: 0;
   color: var(--wk-brand);
   background: currentColor;
   box-shadow: 0 0 6px currentColor;
@@ -433,7 +453,7 @@ onUnmounted(() => {
 .wk-star-gold { color: var(--wk-gold); }
 .wk-star-cross {
   border-radius: 0;
-  clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%);
+  clip-path: polygon(35% 0,65% 0,65% 35%,100% 35%,100% 65%,65% 65%,65% 100%,35% 100%,35% 65%,0 65%,0 35%,35% 35%);
 }
 .wk-bubble {
   position: absolute;
@@ -482,7 +502,7 @@ onUnmounted(() => {
 
 <style>
 .VPHomeHero:has(.wk-universe) .container { align-items: center; }
-.VPHomeHero:has(.wk-universe) .image { margin: 0 0 54px; width: 100%; }
+.VPHomeHero:has(.wk-universe) .image { margin: 0 0 26px; width: 100%; }
 .VPHomeHero:has(.wk-universe) .image-container { display:flex;justify-content:center;width:100%;height:auto;transform:none; }
 @media(min-width:960px) {
   .VPHomeHero:has(.wk-universe) .container { gap:24px; }
