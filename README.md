@@ -17,6 +17,18 @@ wiki-stop   # 停止
 
 提交并推送到 `main`，GitHub Pages 自动更新。
 
+## 文章阅读宽度
+
+普通文章在桌面使用最高 840px 的正文宽度，右侧保留本页目录。规则集中在 `.vitepress/theme/doc-layout.css`，手机沿用默认主题布局。
+
+大表格或可视化较多的文章，可以在 Markdown 顶部开启最高 1080px 的宽版；实际宽度随屏幕和侧栏可用空间缩小：
+
+```yaml
+---
+pageClass: wide-doc
+---
+```
+
 ## 首页主视觉
 
 首页沿用 VitePress 默认布局；右侧主视觉在 `.vitepress/theme/components/HomeUniverse.vue`，通过主题的 `home-hero-image` 插槽挂载。

@@ -7,6 +7,7 @@ import ExamGuides from './components/ExamGuides.vue'
 import './style.css'
 import './home-features.css'
 import './typography.css'
+import './doc-layout.css'
 
 export default {
   ...DefaultTheme,

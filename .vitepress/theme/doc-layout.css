@@ -1,0 +1,27 @@
+/* 阅读宽度集中维护；导航、正文排版与右侧进度目录沿用现有主题。 */
+.VPDoc {
+  --wiki-doc-content-width: 840px;
+}
+
+/* 需要大表格或可视化的文章可在 frontmatter 中设置 pageClass: wide-doc。 */
+.Layout.wide-doc .VPDoc {
+  --wiki-doc-content-width: 1080px;
+}
+
+@media (min-width: 960px) {
+  /* 无左侧章节栏时，外层与正文同步加宽；保留右侧目录的原有空间。 */
+  .VPContent .VPDoc:not(.has-sidebar) > .container {
+    max-width: calc(var(--wiki-doc-content-width) + 384px);
+  }
+
+  .VPDoc:not(.has-sidebar) > .container > .content {
+    max-width: calc(var(--wiki-doc-content-width) + 64px);
+  }
+
+  /* 只命中文章容器，避免影响目录内部同名的 .content。 */
+  .VPContent .VPDoc > .container > .content > .content-container {
+    max-width: var(--wiki-doc-content-width);
+  }
+}
+
+/* 手机继续使用默认主题的正文宽度与内边距。 */
