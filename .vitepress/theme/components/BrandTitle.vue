@@ -6,7 +6,7 @@ const { frontmatter } = useData()
 <template>
   <div class="wk-brand-title">
     <h1 class="wk-heading">
-      <span class="wk-brand-name">硬壳编程 <span class="wk-wiki">Wiki<svg viewBox="0 0 150 20" fill="none" aria-hidden="true"><path d="M5 12C42 2 94 3 140 9M27 17C58 12 102 11 124 13" /></svg></span></span>
+      <span class="wk-brand-name">硬壳编程 <span class="wk-guide">Guide<svg viewBox="0 0 150 20" fill="none" aria-hidden="true"><path d="M5 12C42 2 94 3 140 9M27 17C58 12 102 11 124 13" /></svg></span></span>
       <span class="wk-brand-subtitle">{{ frontmatter.hero?.text }}</span>
     </h1>
     <div class="wk-title-pixels" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
@@ -27,9 +27,9 @@ const { frontmatter } = useData()
 .dark .wk-brand-title { --wk-title-green:#70cf96; --wk-title-lime:#c1dc7a; --wk-title-shine:#84d6c5; }
 .wk-heading { display:flex; flex-direction:column; margin:0; font-size:32px; line-height:1.22; font-weight:700; letter-spacing:-.4px; }
 .wk-brand-name { display:block; color:var(--wk-title-green); white-space:nowrap; background:linear-gradient(115deg,var(--wk-title-green) 5%,var(--wk-title-green) 30%,var(--wk-title-shine) 43%,var(--wk-title-lime) 50%,var(--wk-title-green) 64%,var(--wk-title-green) 100%); background-size:260% 100%; background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:wk-title-light 14s ease-in-out infinite; filter:drop-shadow(0 2px 0 color-mix(in srgb,var(--wk-title-green) 12%,transparent)); transition:filter .5s; }
-.wk-wiki { position:relative; display:inline-block; padding-bottom:.2em; }
-.wk-wiki svg { position:absolute; width:100%; height:.26em; left:0; bottom:0; stroke:var(--wk-title-lime); stroke-width:2; stroke-linecap:round; opacity:.7; }
-.wk-brand-subtitle { color:var(--vp-c-text-1); font-size:.94em; margin-top:8px; letter-spacing:.02em; }
+.wk-guide { position:relative; display:inline-block; padding-bottom:.2em; }
+.wk-guide svg { position:absolute; width:100%; height:.26em; left:0; bottom:0; stroke:var(--wk-title-lime); stroke-width:2; stroke-linecap:round; opacity:.7; }
+.wk-brand-subtitle { color:var(--vp-c-text-1); font-size:clamp(18px,.56em,30px); line-height:1.5; font-weight:600; margin-top:16px; letter-spacing:0; }
 .wk-title-pixels { position:absolute; inset:-20px -20px -20px; pointer-events:none; z-index:-1; }
 .wk-title-pixels i { position:absolute; width:5px; height:5px; color:var(--wk-title-green); background:currentColor; opacity:.3; animation:wk-title-pixel 7s ease-in-out infinite; }
 .wk-title-pixels i:nth-child(1) { right:2%; top:23%; box-shadow:7px -7px 0 color-mix(in srgb,currentColor 35%,transparent); }

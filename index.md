@@ -2,8 +2,8 @@
 layout: home
 
 hero:
-  name: "硬壳编程 Wiki"
-  text: "核心知识库"
+  name: "硬壳编程 Guide"
+  text: "探索编程，用代码创造"
 features:
   - icon: '<span class="wk-course-icon wk-course-scratch" aria-hidden="true"></span>'
     title: Scratch 图形化编程

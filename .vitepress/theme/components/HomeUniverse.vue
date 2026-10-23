@@ -310,6 +310,8 @@ onUnmounted(() => {
 .wk-atmosphere {
   position: absolute;
   inset: 0;
+  /* Rotating decorative glows must not widen the mobile page. */
+  overflow: clip;
   pointer-events: none;
   transform: translate(calc(var(--wk-mx) * -4px), calc(var(--wk-my) * -3px));
 }
