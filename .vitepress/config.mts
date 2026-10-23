@@ -6,6 +6,9 @@ export default defineConfig({
   srcExclude: ['README.md'],
   title: "硬壳编程 Wiki",
   description: "核心知识库",
+  markdown: {
+    math: true
+  },
   transformHead({ pageData }) {
     if (pageData.isNotFound || (pageData.frontmatter.layout && pageData.frontmatter.layout !== 'doc')) return []
     // Apply stored layout before first paint; the controls hydrate the same preferences.

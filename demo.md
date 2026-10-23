@@ -143,7 +143,7 @@ print(message)
 - [跳回三级标题](#三级标题-从例子开始-examples)
 - [查看这页的 Markdown 源码](https://github.com/MysGln/engeeker-wiki/blob/main/demo.md)
 
-键盘按键：<kbd>Ctrl</kbd> + <kbd>C</kbd>；上下标：x<sup>2</sup>、a<sub>i</sub>。
+键盘按键：<kbd>Ctrl</kbd> + <kbd>C</kbd>；上下标：$x^2$、$a_i$。
 
 ---
 
