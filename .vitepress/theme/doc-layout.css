@@ -1,27 +1,59 @@
-/* 阅读宽度集中维护；导航、正文排版与右侧进度目录沿用现有主题。 */
-.VPDoc {
-  --wiki-doc-content-width: 840px;
+/* All reading controls are scoped to article pages. Homepage styling is unchanged. */
+.VPDoc { --wiki-doc-content-width:840px; }
+.Layout.wide-doc .VPDoc { --wiki-doc-content-width:1080px; }
+html[data-wiki-width=standard] .Layout .VPDoc { --wiki-doc-content-width:688px; }
+
+/* Small screens retain VitePress's native chapter drawer and outline dropdown. */
+html[data-wiki-reading] .VPContent.has-sidebar { padding-right:0; padding-left:0; }
+html[data-wiki-reading] .VPLocalNav .container { max-width:none; }
+html[data-wiki-sidebar=hide] .VPLocalNav .menu,
+html[data-wiki-outline=hide] .VPLocalNavOutlineDropdown { display:none; }
+html[data-wiki-sidebar=hide][data-wiki-outline=hide] .VPLocalNav { display:none; }
+
+@media(min-width:960px) {
+  html[data-wiki-reading] .Layout { --vp-sidebar-width:240px; }
+  html[data-wiki-reading] .VPNavBar.has-sidebar .wrapper { padding:0 32px; }
+  html[data-wiki-reading] .VPNavBar.has-sidebar .title { position:static; width:auto; padding:0; }
+  html[data-wiki-reading] .VPNavBar.has-sidebar .content { padding:0; }
+  html[data-wiki-reading] .VPNavBar.has-sidebar .divider { padding-left:0; }
+
+  html[data-wiki-reading] .VPSidebar { top:var(--vp-nav-height); width:var(--vp-sidebar-width); padding:20px 16px 40px; border-right:1px solid var(--vp-c-divider); background:var(--vp-c-bg); }
+  html[data-wiki-reading] .VPSidebar .curtain { display:none; }
+  html[data-wiki-reading] .VPSidebar .VPSidebarItem.level-0 { padding-bottom:16px; }
+  html[data-wiki-reading] .VPSidebar .VPSidebarItem.level-1 > .item { border-radius:7px; padding:2px 10px; }
+  html[data-wiki-reading] .VPSidebar .VPSidebarItem.level-1.is-active > .item { background:var(--vp-c-brand-soft); }
+  html[data-wiki-sidebar=hide] .VPSidebar { display:none; }
+  html[data-wiki-sidebar=show] .VPContent.has-sidebar { padding-left:var(--vp-sidebar-width); }
+
+  html[data-wiki-reading] .VPDoc { padding:48px 32px 80px; }
+  html[data-wiki-reading] .VPDoc > .container { display:flex; align-items:flex-start; justify-content:center; gap:40px; max-width:var(--wiki-doc-content-width); }
+  html[data-wiki-reading] .VPDoc > .container > .content { flex:1 1 0; width:100%; min-width:0; max-width:var(--wiki-doc-content-width); margin:0; padding:0; }
+  html[data-wiki-reading] .VPDoc > .container > .content > .content-container { max-width:var(--wiki-doc-content-width); }
+  html[data-wiki-reading] .VPDoc > .container > .aside { display:none; flex:0 0 216px; width:216px; max-width:216px; padding:0; }
+  html[data-wiki-reading] .VPDoc .VPDocAside { position:relative; }
+  html[data-wiki-reading] .VPDoc .outline-title { padding-right:24px; }
+  html[data-wiki-reading] .VPDoc .aside-container,
+  html[data-wiki-reading] .VPDoc .aside-curtain { width:216px; }
+
+  html[data-wiki-reading] .VPLocalNav.has-sidebar { padding-left:0; }
+  html[data-wiki-sidebar=show] .VPLocalNav.has-sidebar { padding-left:var(--vp-sidebar-width); }
+  html[data-wiki-reading] .VPLocalNav .container { justify-content:flex-end; }
+  html[data-wiki-reading] .VPLocalNavOutlineDropdown { padding:8px 32px; }
+  html[data-wiki-reading] .VPLocalNavOutlineDropdown .items { right:24px; left:auto; }
+  html[data-wiki-outline=hide] .VPLocalNav { display:none; }
 }
 
-/* 需要大表格或可视化的文章可在 frontmatter 中设置 pageClass: wide-doc。 */
-.Layout.wide-doc .VPDoc {
-  --wiki-doc-content-width: 1080px;
+/* Below 1440px the page outline stays accessible from the local navigation. */
+@media(min-width:1280px) and (max-width:1439px) {
+  html[data-wiki-reading][data-wiki-outline=show] .VPLocalNav { display:block; }
+}
+@media(min-width:1440px) {
+  html[data-wiki-reading] .VPLocalNav { display:none; }
+  html[data-wiki-outline=show] .VPDoc.has-aside:has(.VPDocAsideOutline.has-outline) > .container { max-width:calc(var(--wiki-doc-content-width) + 256px); }
+  html[data-wiki-outline=show] .VPDoc.has-aside:has(.VPDocAsideOutline.has-outline) > .container > .aside { display:block; }
 }
 
-@media (min-width: 960px) {
-  /* 无左侧章节栏时，外层与正文同步加宽；保留右侧目录的原有空间。 */
-  .VPContent .VPDoc:not(.has-sidebar) > .container {
-    max-width: calc(var(--wiki-doc-content-width) + 384px);
-  }
-
-  .VPDoc:not(.has-sidebar) > .container > .content {
-    max-width: calc(var(--wiki-doc-content-width) + 64px);
-  }
-
-  /* 只命中文章容器，避免影响目录内部同名的 .content。 */
-  .VPContent .VPDoc > .container > .content > .content-container {
-    max-width: var(--wiki-doc-content-width);
-  }
+@media(max-width:959px) {
+  html[data-wiki-reading] .VPSidebar { padding-top:24px; }
+  html[data-wiki-reading] .VPSidebar .curtain { display:none; }
 }
-
-/* 手机继续使用默认主题的正文宽度与内边距。 */
